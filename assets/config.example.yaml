@@ -1,0 +1,32 @@
+# 88省钱配置文件
+# 复制本文件为 config.yaml 并填写实际值
+
+# 商品信息
+item_url: "https://item.taobao.com/item.htm?id=1052396231420&skuId=6257876794930"
+item_title: "奥妙高效洗洁精"
+
+# 金额预期（单位：元）
+expected_shop_discount: 3.00    # 店铺优惠满减
+expected_red_packet: 2.00       # 88VIP每日红包
+expected_total: 0.01            # 最终应付金额
+
+# 收货地址核对（关键词匹配即可，不修改地址）
+address_keyword: "杭州 拱墅"
+
+# 支付方式
+payment_method: "先用后付"
+
+# 下单时间表（从启动时间T0起算）
+schedule:
+  order1:
+    window_start_hour: 21      # 第1单：当天21:00之后
+    window_start_day_offset: 0
+  order2:
+    window_start_day_offset: 1  # 第2单：第2天任意时间
+    window_end_day_offset: 1
+  order3:
+    window_end_hour: 10         # 第3单：第3天10:00之前
+    window_end_day_offset: 2
+
+# 时间上限（小时），超时自动停止
+max_duration_hours: 48
