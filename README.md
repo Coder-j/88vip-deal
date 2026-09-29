@@ -23,7 +23,17 @@
 
 ## 安装
 
-### 1. 克隆到技能目录
+### 一键安装（推荐）
+
+直接把下面这句话发给你的 Agent（豆包/豆包Turbo）：
+
+> 帮我安装GitHub仓库 https://github.com/Coder-j/88vip-deal 这个skill，克隆到 ~/.doubao/agent_mode/workspace/.user_skills/88vip-deal，安装好后告诉我怎么用。
+
+Agent 会自动完成克隆、目录校验和配置说明。
+
+### 手动安装
+
+#### 1. 克隆到技能目录
 
 ```bash
 cd ~/.doubao/agent_mode/workspace/.user_skills/
