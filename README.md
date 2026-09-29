@@ -2,6 +2,18 @@
 
 利用淘宝88VIP每日自动发放的2元红包，在48小时内自动完成3笔¥0.01元订单的浏览器自动化技能。
 
+## 一键安装
+
+复制下面这句话发给你的 AI Agent（支持豆包、Claude、Cursor 等任意支持 Skill 的 Agent）：
+
+```
+请从 GitHub 仓库 https://github.com/Coder-j/88vip-deal 安装这个 skill 到你的 skills 目录，安装完成后告诉我如何使用。
+```
+
+Agent 会自动完成克隆、目录校验和配置说明。
+
+---
+
 ## 它做什么
 
 - 每天0点88VIP自动发1个2元淘宝天猫购物红包（当天有效）
@@ -21,19 +33,11 @@
 | 商品选择 | 店铺满减后价格≈¥2.01的实物商品（如满5减3的洗洁精/湿巾） |
 | TypeSafe API Key | 可选，用于结构化判断；未配置时降级为截图判断 |
 
-## 安装
+## 手动安装
 
-### 一键安装（推荐）
+如果 Agent 一键安装不生效，可手动操作：
 
-直接把下面这句话发给你的 Agent（豆包/豆包Turbo）：
-
-> 帮我安装GitHub仓库 https://github.com/Coder-j/88vip-deal 这个skill，克隆到 ~/.doubao/agent_mode/workspace/.user_skills/88vip-deal，安装好后告诉我怎么用。
-
-Agent 会自动完成克隆、目录校验和配置说明。
-
-### 手动安装
-
-#### 1. 克隆到技能目录
+### 1. 克隆到技能目录
 
 ```bash
 cd ~/.doubao/agent_mode/workspace/.user_skills/
@@ -71,7 +75,7 @@ export TYPESAFE_API_KEY="your-key-here"
 
 ## 快速使用
 
-在豆包/豆包Turbo中直接说：
+安装完成后，直接对 Agent 说：
 
 **方式A：手动指定商品**
 > "用88省钱技能帮我下单，商品链接是 https://item.taobao.com/item.htm?id=xxx&skuId=yyy"
