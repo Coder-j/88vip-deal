@@ -24,7 +24,8 @@ description: >
 
 | 字段 | 说明 | 示例 |
 |---|---|---|
-| `item_url` | 商品页完整URL（含skuId） | `https://item.taobao.com/item.htm?id=xxx&skuId=yyy` |
+| `store_group_name` | 淘宝关注店铺分组名，设置后自动从该分组店铺推荐商品 | `88vip羊毛` |
+| `item_url` | 商品页完整URL（含skuId）；不填则从分组推荐 | `https://item.taobao.com/item.htm?id=xxx&skuId=yyy` |
 | `item_title` | 商品名称（用于核对） | `奥妙高效洗洁精 10抽湿巾` |
 | `expected_shop_discount` | 店铺优惠金额 | `3.00` |
 | `expected_red_packet` | 红包抵扣金额 | `2.00` |
@@ -52,18 +53,29 @@ description: >
 
 1. 用 `computer_use_tool`（plane="bu"）打开 `https://i.taobao.com/my_itaobao`。
 2. 等待页面加载后检查 URL：
-   - 如果跳转到 `login.taobao.com` → **会话失效**，调用 `interaction.request_action` 请用户登录后再继续。
+   - 如果跳转到 `login.taobao.com` → **会话失效**，按 `references/taobao-checkout-flow.md` 的"登录过期处理流程"截图二维码发到对话让用户扫码。
    - 如果正常显示"我的淘宝"页面，确认页面上显示的用户名（应为88VIP会员账号）→ 账号有效，继续。
 3. 截图记录当前登录账号，向用户确认。
 
-### 第1步：提示输入商品链接
+### 第1步：选择商品来源（二选一）
 
-向用户询问以下信息（一次性问完）：
+向用户询问：
 
-1. **商品链接**：完整的商品页 URL（含 skuId）。如果用户只给了商品ID，自动拼接为 `https://item.taobao.com/item.htm?id={id}`。
-2. **SKU 确认**：打开商品页后截图，让用户确认选中的 SKU 是否正确。
-3. **收货地址关键词**：默认使用上次配置的地址关键词，如需修改则询问。
-4. 其他金额预期（店铺优惠、红包、合计）使用默认值（¥3 / ¥2 / ¥0.01），如不同则让用户确认。
+**方式A：从关注店铺分组推荐（推荐）**
+1. 询问用户淘宝关注店铺的分组名称（如"88vip羊毛"）。
+2. 打开关注店铺页 `https://i.taobao.com/my_itaobao/subscription`，找到该分组。
+3. 遍历分组下所有店铺，列出每个店铺中价格为 ¥2.01 的商品（标题+价格+付款人数）。
+4. 汇总成表格展示给用户，标注推荐优先级（付款人数高、实物商品、非虚拟品类）。
+5. 用户选定商品后，点击进入商品页，自动获取 item_url 和 skuId。
+
+**方式B：手动输入商品链接**
+1. 用户直接提供完整商品页 URL（含 skuId）。
+2. 如果用户只给了商品ID，自动拼接为 `https://item.taobao.com/item.htm?id={id}`。
+
+选定商品后：
+1. 打开商品页截图，让用户确认 SKU 是否正确。
+2. 收货地址关键词默认使用上次配置，如需修改则询问。
+3. 金额预期（店铺优惠¥3 / 红包¥2 / 合计¥0.01）使用默认值，如不同则确认。
 
 ### 第2步：创建定时任务
 
@@ -88,6 +100,18 @@ description: >
 - 每个任务设置 `schedule_type="at"`（一次性任务），指定具体日期和**随机计算出的时分**。
 - 任务标题清晰命名，如"88省钱-第1单-22:43"（用实际随机时间）。
 - 创建完成后向用户展示3个任务的具体日期时间和内容确认。
+
+### 第2.5步：登录态预检任务（每单前1小时）
+
+每笔下单任务前1小时，创建一个**登录态预检任务**，提前发现登录过期：
+
+1. 预检时间 = 下单时间前1小时。
+2. **睡眠窗口避让**：如果预检时间落在 23:00–07:00 之间，提前到当天 23:00 执行（即睡觉开始时检查）。
+3. 预检任务内容：
+   - 打开 `https://i.taobao.com/my_itaobao`，检查是否跳转到登录页。
+   - 如果已过期：按"登录过期处理流程"截图二维码发到对话，让用户提前扫码，不等到下单时才发现。
+   - 如果正常：记录"登录态有效"，不做其他操作。
+4. 预检失败（用户未及时扫码）不影响下单任务本身——下单时会再次检查。
 
 ### 第3步：任务执行
 
@@ -155,7 +179,7 @@ description: >
 - **提交按钮只点一次**：如果结果不确定，先去订单列表核实，不要重复点击。
 - **不读取/输入任何密码、验证码、支付口令**：如出现支付宝密码/验证码/人脸识别，立即调用 `interaction.request_action` 交还控制权。
 - **不修改收货地址**：三单地址必须一致，仅核对不更改。
-- **会话失效即停**：如果页面跳转到登录页，不要尝试登录，调用 `interaction.request_action` 交还用户登录。
+- **会话过期即停**：如果页面跳转到登录页，截图登录二维码发到对话中让用户扫码，不要让用户自己去浏览器找；扫码完成后继续流程。
 - **红包不可用不硬下**：如果红包未抵扣导致合计 ≠ ¥0.01，停止并报告。
 
 ## 淘宝风控安全规则（防封号）
@@ -188,6 +212,7 @@ description: >
 ## 参考文件
 
 - [references/taobao-checkout-flow.md](references/taobao-checkout-flow.md) — 单笔下单完整步骤（含 TypeSafe 判断点）、红包恢复流程、故障处理。
+- [references/store-group-discovery.md](references/store-group-discovery.md) — 从关注店铺分组自动发现¥2.01商品并推荐。
 - [references/troubleshooting.md](references/troubleshooting.md) — 常见问题与解决方案（红包不可用、风控被盾、先用后付异常、订单被关闭等）。
 - `scripts/ts_judge.py` — TypeSafe API 调用辅助脚本。
 - 定时任务创建：使用前读取 `doubao-cron-scheduler` skill，按其指引调用 `create_cron_job`。

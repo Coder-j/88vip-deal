@@ -77,11 +77,26 @@ with open("/tmp/page_state.txt", "w") as f:
 
 | TypeSafe 结果 | 动作 |
 |---|---|
-| `login` | 会话失效，调用 `interaction.request_action` 交还用户登录 |
+| `login` | 执行下方"登录过期处理流程"，不要直接交还浏览器 |
 | `risk_control` | 风控拦截，停止并报告 |
 | `out_of_stock` | 商品已下架/无货，停止本单并报告，不尝试换商品 |
 | `product` | 继续步骤0.5（订单去重检查） |
 | `other` | 截图查看，判断是否需要刷新 |
+
+## 登录过期处理流程
+
+当检测到页面跳转到 `login.taobao.com` 时：
+
+1. 导航到 `https://login.taobao.com/`，等待二维码加载（约4秒）。
+2. **截图登录二维码**：`frame = bu.screenshot()`，得到本地图片路径。
+3. **上传图片并发给用户扫码**：
+   - 用 `FileBatchUpload` 上传截图，获得可访问URL。
+   - 用 `present_files` 把截图展示给用户，提示"请用淘宝APP扫码登录"。
+4. **等待用户扫码完成**：调用 `interaction.request_action`（type="browserControl"），提示用户"扫码登录完成后点确认交回控制权"。
+5. 控制权交回后，刷新页面验证登录态：导航到 `https://i.taobao.com/my_itaobao`，确认URL不含 `login.taobao.com`。
+6. 登录成功后，从步骤1重新开始（商品页确认）。
+
+> **不要让用户自己去浏览器找二维码**——截图直接发到对话里，用户扫码即可。
 
 ## 步骤0.5：订单去重检查（防止重复下单）
 

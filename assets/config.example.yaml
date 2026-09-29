@@ -1,9 +1,13 @@
 # 88省钱配置文件
 # 复制本文件为 config.yaml 并填写实际值
 
-# 商品信息
-item_url: "https://item.taobao.com/item.htm?id=1052396231420&skuId=6257876794930"
-item_title: "奥妙高效洗洁精"
+# 店铺分组（可选）：设置后自动从该分组推荐¥2.01商品
+# 留空则手动填写下方 item_url
+store_group_name: "88vip羊毛"
+
+# 商品信息（store_group_name 为空时必填）
+item_url: ""
+item_title: ""
 
 # 金额预期（单位：元）
 expected_shop_discount: 3.00    # 店铺优惠满减
