@@ -42,10 +42,16 @@ python3 <skill_dir>/scripts/ts_judge.py \
 
 ---
 
-## 前置：确认登录态 + 页面分类
+## 前置：Cookie预热 + 确认登录态
+
+**淘宝不同子域名Session独立**：i.taobao.com 已登录不代表 buy.taobao.com 已登录。下单前先预热Cookie：
 
 ```python
 import seed_browser_use as bu
+bu.navigate("https://i.taobao.com/my_itaobao")   # 1. 先访问我的淘宝预热Cookie
+bu.wait_for_load(timeout=20)
+page_wait()
+# 确认未跳登录页后，再访问商品页
 bu.navigate(config["item_url"])
 bu.wait_for_load(timeout=20)
 page_wait()
@@ -55,6 +61,8 @@ page_text = bu.get_page_text()
 with open("/tmp/page_state.txt", "w") as f:
     f.write(page_text + "\nURL: " + info["url"] + "\nTitle: " + info["title"])
 ```
+
+> **不要直接打开商品页或 buy_now.jhtml**——先过 i.taobao.com 让Cookie续期，能减少 buy.taobao.com 反复要求重新登录的概率。
 
 **用 TypeSafe 判断页面类型**（choice）：
 
@@ -97,6 +105,8 @@ with open("/tmp/page_state.txt", "w") as f:
 6. 登录成功后，从步骤1重新开始（商品页确认）。
 
 > **不要让用户自己去浏览器找二维码**——截图直接发到对话里，用户扫码即可。
+>
+> **扫码时提醒用户在手机上勾选"10天内自动登录"**，可延长PC端Cookie有效期，减少频繁扫码。
 
 ## 步骤0.5：订单去重检查（防止重复下单）
 
